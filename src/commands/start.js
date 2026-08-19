@@ -24,7 +24,7 @@ const handleStart = async (ctx) => {
 
     const displayName = firstName || username || 'Pelanggan';
     return ctx.reply(
-      `Halo ${displayName}! Selamat datang di Toko Produk Digital.\n\n` +
+      `Halo ${displayName}! Selamat datang di Bot Auto Order.\n\n` +
       `Silakan klik tombol di bawah untuk melihat daftar produk yang tersedia.`,
       { reply_markup: keyboard }
     );

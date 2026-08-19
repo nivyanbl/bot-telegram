@@ -1,10 +1,11 @@
-const supabase = require('../config/supabase');
+const supabase = require("../config/supabase");
 
 const getActiveProducts = async () => {
   const { data, error } = await supabase
-    .from('products')
-    .select('id, name')
-    .eq('is_active', true);
+    .from("products")
+    .select("id, name")
+    .eq("is_active", true)
+    .order("name", { ascending: true });
 
   if (error) throw new Error(error.message);
   return data;
@@ -12,8 +13,9 @@ const getActiveProducts = async () => {
 
 const getVariantsByProductId = async (productId) => {
   const { data, error } = await supabase
-    .from('product_variants')
-    .select(`
+    .from("product_variants")
+    .select(
+      `
       id,
       name,
       description,
@@ -22,18 +24,20 @@ const getVariantsByProductId = async (productId) => {
         id,
         status
       )
-    `)
-    .eq('product_id', productId)
-    .eq('is_active', true);
+    `,
+    )
+    .eq("product_id", productId)
+    .eq("is_active", true);
 
   if (error) throw new Error(error.message);
 
-  return data.map((variant) => ({
+  return (data || []).map((variant) => ({
     id: variant.id,
     name: variant.name,
     description: variant.description,
     price: variant.price,
-    stockCount: variant.stocks.filter((s) => s.status === 'AVAILABLE').length,
+    stockCount: (variant.stocks || []).filter((s) => s.status === "AVAILABLE")
+      .length,
   }));
 };
 
