@@ -9,6 +9,10 @@ bot.command("start", handleStart);
 
 registerCatalogHandlers(bot);
 
+bot.catch((error) => {
+	console.error("Error saat memproses update Telegram:", error.error);
+});
+
 // ======================================================
 // START BOT
 // ======================================================

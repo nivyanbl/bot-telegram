@@ -53,6 +53,10 @@ const showProductVariants = async (ctx, productId, editMessage = false) => {
       ? ctx.editMessageText(message, replyOptions)
       : ctx.reply(message, replyOptions);
   } catch (error) {
+    if (error.description?.includes("message is not modified")) {
+      return;
+    }
+
     console.error(error);
     return ctx.reply("Gagal memuat rincian paket produk.");
   }
@@ -73,11 +77,7 @@ const registerCatalogHandlers = (bot) => {
 
       products.forEach((product, index) => {
         const number = index + 1;
-        keyboard
-          .text(
-            formatProductButtonLabel(number),
-            `prod_${product.id}`,
-          );
+        keyboard.text(formatProductButtonLabel(number), `prod_${product.id}`);
 
         if (number % 5 === 0 || number === products.length) {
           keyboard.row();
