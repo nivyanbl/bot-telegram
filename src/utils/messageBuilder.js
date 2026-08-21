@@ -11,25 +11,26 @@ const formatPrice = (value) => value.toLocaleString("id-ID");
 const buildProductCatalogText = (products) => {
   let text = "<b>📋 DAFTAR PRODUK</b>\n\n";
 
-  products.forEach((prod, index) => {
-    const number = index + 1;
-    text += `<b>${number}.</b> ${escapeHtml(prod.name)}\n`;
+  products.forEach((product, index) => {
+    text += `<b>${index + 1}.</b> ${escapeHtml(product.name)}\n`;
   });
 
-  text += "\nSilakan klik produk atau ketik nomornya.";
-  text += "\nContoh: <code>1</code>";
-
-  return text;
+  return (
+    `${text}\n` +
+    "Silakan pilih nomor produk melalui tombol di bawah atau ketik manual.\n" +
+    "Contoh: <code>1</code>"
+  );
 };
 
-const buildVariantText = (variants) => {
-  let text = "<b>📋 PILIHAN PAKET & DURASI</b>\n\n";
+const buildVariantText = (productName, variants) => {
+  let text = `<b>${escapeHtml(productName).toUpperCase()}</b>\n\n`;
 
   variants.forEach((variant) => {
-    text += `🔹 <b>Paket:</b> ${escapeHtml(variant.name)}\n`;
-    text += `📝 <b>Keterangan:</b> ${escapeHtml(variant.description || "-")}\n`;
-    text += `💰 <b>Harga:</b> Rp ${formatPrice(variant.price)}\n`;
-    text += `📦 <b>Stok:</b> ${variant.stockCount} tersedia\n\n`;
+    text += `╭── <b>[ ${escapeHtml(variant.name)} ]</b>\n`;
+    text += `│ 💵 <b>Harga:</b> Rp ${formatPrice(variant.price)}\n`;
+    text += `│ 📦 <b>Stok:</b> ${variant.stockCount} pcs\n`;
+    text += `│ 📝 <b>Deskripsi:</b> ${escapeHtml(variant.description || "-")}\n`;
+    text += "╰────────────────\n\n";
   });
 
   return text;

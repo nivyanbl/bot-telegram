@@ -1,6 +1,7 @@
 const { InlineKeyboard } = require("grammy");
 const {
   getActiveProducts,
+  getProductById,
   getVariantsByProductId,
 } = require("../services/productService");
 const {
@@ -11,13 +12,11 @@ const {
 
 const pendingProductSelection = new Map();
 
-const formatProductButtonLabel = (index, name) => {
-  const safeName = String(name).slice(0, 28);
-  return `${index}. ${safeName}`;
-};
+const formatProductButtonLabel = (index) => String(index);
 
-const showProductVariants = async (ctx, productId) => {
+const showProductVariants = async (ctx, productId, editMessage = false) => {
   try {
+    const product = await getProductById(productId);
     const variants = await getVariantsByProductId(productId);
 
     if (variants.length === 0) {
@@ -26,25 +25,33 @@ const showProductVariants = async (ctx, productId) => {
 
     const keyboard = new InlineKeyboard();
 
-    variants.forEach((variant) => {
-      if (variant.stockCount > 0) {
-        keyboard
-          .text(
-            `Beli ${variant.name} (Rp ${formatPrice(variant.price)})`,
-            `buy_var_${variant.id}`,
-          )
-          .row();
+    variants.forEach((variant, index) => {
+      keyboard.text(
+        `${variant.name} - ${variant.price}`,
+        `buy_var_${variant.id}`,
+      );
+
+      if (index % 2 === 1 || index === variants.length - 1) {
+        keyboard.row();
       }
     });
 
-    keyboard.text("⬅️ Kembali ke Daftar Produk", "view_catalog");
+    keyboard
+      .text("🔄 Refresh", `refresh_product_${productId}`)
+      .row()
+      .text("⬅️ Kembali", "view_catalog");
 
     pendingProductSelection.delete(ctx.chat?.id);
 
-    return ctx.reply(buildVariantText(variants), {
+    const message = buildVariantText(product.name, variants);
+    const replyOptions = {
       parse_mode: "HTML",
       reply_markup: keyboard,
-    });
+    };
+
+    return editMessage
+      ? ctx.editMessageText(message, replyOptions)
+      : ctx.reply(message, replyOptions);
   } catch (error) {
     console.error(error);
     return ctx.reply("Gagal memuat rincian paket produk.");
@@ -68,10 +75,13 @@ const registerCatalogHandlers = (bot) => {
         const number = index + 1;
         keyboard
           .text(
-            formatProductButtonLabel(number, product.name),
+            formatProductButtonLabel(number),
             `prod_${product.id}`,
-          )
-          .row();
+          );
+
+        if (number % 5 === 0 || number === products.length) {
+          keyboard.row();
+        }
       });
 
       pendingProductSelection.set(ctx.chat?.id, products);
@@ -91,7 +101,7 @@ const registerCatalogHandlers = (bot) => {
 
     const productId = ctx.match[1];
 
-    await showProductVariants(ctx, productId);
+    await showProductVariants(ctx, productId, true);
   });
 
   bot.on("message:text", async (ctx) => {
@@ -128,6 +138,11 @@ const registerCatalogHandlers = (bot) => {
     return ctx.reply(
       `Anda memilih varian ID: ${variantId}.\nLanjut ke pembayaran.`,
     );
+  });
+
+  bot.callbackQuery(/^refresh_product_(\d+)$/, async (ctx) => {
+    await ctx.answerCallbackQuery("Stok diperbarui");
+    await showProductVariants(ctx, ctx.match[1], true);
   });
 };
 

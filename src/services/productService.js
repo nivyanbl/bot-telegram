@@ -11,6 +11,18 @@ const getActiveProducts = async () => {
   return data;
 };
 
+const getProductById = async (productId) => {
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name")
+    .eq("id", productId)
+    .eq("is_active", true)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+};
+
 const getVariantsByProductId = async (productId) => {
   const { data, error } = await supabase
     .from("product_variants")
@@ -43,5 +55,6 @@ const getVariantsByProductId = async (productId) => {
 
 module.exports = {
   getActiveProducts,
+  getProductById,
   getVariantsByProductId,
 };
