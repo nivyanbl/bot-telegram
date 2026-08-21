@@ -23,6 +23,18 @@ const getProductById = async (productId) => {
   return data;
 };
 
+const getVariantById = async (variantId) => {
+  const { data, error } = await supabase
+    .from("product_variants")
+    .select("id, product_id, name, price, description, is_active")
+    .eq("id", variantId)
+    .eq("is_active", true)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+};
+
 const getVariantsByProductId = async (productId) => {
   const { data, error } = await supabase
     .from("product_variants")
@@ -53,8 +65,19 @@ const getVariantsByProductId = async (productId) => {
   }));
 };
 
+const getProductWithVariants = async (productId) => {
+  const [product, variants] = await Promise.all([
+    getProductById(productId),
+    getVariantsByProductId(productId),
+  ]);
+
+  return { ...product, variants };
+};
+
 module.exports = {
   getActiveProducts,
   getProductById,
+  getProductWithVariants,
+  getVariantById,
   getVariantsByProductId,
 };
